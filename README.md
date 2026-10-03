@@ -8,7 +8,8 @@ every node in range.
 Status: **MVP (spec steps 1–5)**, Android first.
 
 **[Live preview & mesh simulator](https://litu173.github.io/LinkMesh/)** ·
-**[Download the APK](https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk)**
+**[Android APK](https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk)** ·
+**[iPhone IPA](https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh-iOS.ipa)** (install with [Sideloadly](https://litu173.github.io/LinkMesh/#iphone))
 
 ## Setup
 
@@ -80,14 +81,14 @@ are Android-only.
 | Option | Who can install | Needs |
 |---|---|---|
 | Xcode direct install | iPhones plugged into this Mac | Free Apple ID; the app expires after 7 days |
-| Sideloadly / AltStore with `LinkMesh-iOS-unsigned.ipa` | Any iPhone, signed with the tester's own Apple ID | Free Apple ID per tester; re-sign every 7 days |
+| Sideloadly / AltStore with `LinkMesh-iOS.ipa` | Any iPhone, signed with the tester's own Apple ID | Free Apple ID per tester; re-sign every 7 days |
 | TestFlight | Anyone with the link (up to 10,000) | Apple Developer Program ($99/yr) |
 
 Build the unsigned IPA:
 
 ```bash
 flutter build ios --release --no-codesign
-mkdir -p Payload && cp -R build/ios/iphoneos/Runner.app Payload/ && zip -qry LinkMesh-iOS-unsigned.ipa Payload
+mkdir -p Payload && cp -R build/ios/iphoneos/Runner.app Payload/ && zip -qry LinkMesh-iOS.ipa Payload
 ```
 
 ## Architecture

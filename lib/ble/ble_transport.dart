@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:ble_peripheral/ble_peripheral.dart';
 import 'package:flutter/foundation.dart';
@@ -48,7 +49,9 @@ class BleTransport implements MeshTransport {
   StreamSubscription<List<ScanResult>>? _scanSub;
   Timer? _scanTimer;
   Timer? _maintenanceTimer;
-  bool _peripheralConfigured = false;
+  bool _peripheralInitialized = false;
+  bool _serviceAdded = false;
+  var _peripheralPoweredOn = Completer<void>();
   bool _online = false;
   bool _background = false;
 
@@ -159,11 +162,29 @@ class BleTransport implements MeshTransport {
   // ---------------------------------------------------------------------------
   // Peripheral role
 
+  /// Apple's peripheral manager powers on asynchronously and silently
+  /// ignores services and advertising requested before that. It also drops
+  /// published services whenever Bluetooth turns off.
+  static final _isApple = Platform.isIOS || Platform.isMacOS;
+
   Future<void> _startPeripheral() async {
-    if (!_peripheralConfigured) {
-      await BlePeripheral.initialize();
+    if (!_peripheralInitialized) {
+      BlePeripheral.setBleStateChangeCallback(_onPeripheralState);
       BlePeripheral.setWriteRequestCallback(_onWriteRequest);
       BlePeripheral.setReadRequestCallback(_onReadRequest);
+      await BlePeripheral.initialize();
+      _peripheralInitialized = true;
+    }
+    if (_isApple) {
+      if (!_peripheralPoweredOn.isCompleted) {
+        await _peripheralPoweredOn.future
+            .timeout(const Duration(seconds: 15));
+      }
+      // Services don't survive a Bluetooth off/on cycle on Apple.
+      await BlePeripheral.clearServices();
+      _serviceAdded = false;
+    }
+    if (!_serviceAdded) {
       await BlePeripheral.addService(
         BleService(
           uuid: BleConstants.serviceUuid,
@@ -184,12 +205,26 @@ class BleTransport implements MeshTransport {
           ],
         ),
       );
-      _peripheralConfigured = true;
+      _serviceAdded = true;
     }
     // No localName: a 128-bit UUID plus a name overflows the 31-byte legacy
     // advertisement. Peers read our name from the identity characteristic.
     await BlePeripheral.startAdvertising(services: [BleConstants.serviceUuid]);
+    debugPrint('LinkMesh: advertising LinkMesh service');
   }
+
+  // A Bluetooth off/on cycle also goes through _goOffline/_goOnline (via the
+  // adapter state), which waits here again and republishes the service.
+  void _onPeripheralState(bool poweredOn) {
+    debugPrint('LinkMesh: peripheral powered on: $poweredOn');
+    if (poweredOn) {
+      if (!_peripheralPoweredOn.isCompleted) _peripheralPoweredOn.complete();
+    } else if (_peripheralPoweredOn.isCompleted) {
+      _peripheralPoweredOn = Completer();
+    }
+  }
+
+
 
   WriteRequestResult? _onWriteRequest(
     String deviceId,

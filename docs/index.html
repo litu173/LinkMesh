@@ -118,11 +118,12 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 
   <div class="hero">
     <div>
-      <span class="pill">v0.2 · Android · Open source</span>
+      <span class="pill">v0.3 · Android &amp; iPhone · Open source</span>
       <h1>Messages that hop phone to phone. No internet needed.</h1>
       <p class="lead">LinkMesh connects nearby Android phones over Bluetooth Low Energy and relays messages through each other, for blackouts, festivals, hikes and emergencies.</p>
       <div class="btns">
-        <a class="btn primary" href="https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk">⬇ Download APK</a>
+        <a class="btn primary" href="https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk">⬇ Android APK</a>
+        <a class="btn primary" href="#iphone">📱 iPhone</a>
         <a class="btn" href="#simulator">Try the mesh simulator</a>
       </div>
     </div>
@@ -250,10 +251,10 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 <section id="install">
   <div class="wrap">
     <h2>Install &amp; test</h2>
-    <p class="sub">You need two or more Android 8+ phones. Emulators have no Bluetooth radio.</p>
+    <p class="sub">You need two or more real devices: Android 8+ phones, iPhones (iOS 15+), or a Mac. Android and iPhone talk to each other. Emulators and the iOS Simulator have no Bluetooth radio, so they can't connect.</p>
     <div class="cols">
       <div class="card">
-        <h3>Install the APK</h3>
+        <h3>🤖 Android: install the APK</h3>
         <ol class="steps">
           <li><a href="https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk">Download LinkMesh.apk</a> on each phone.</li>
           <li>Allow "Install unknown apps". If Play Protect warns about a test build, choose <i>Install anyway</i>.</li>
@@ -270,6 +271,25 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
           <li><b>SOS:</b> tap SOS. Every phone should get an alert with coordinates.</li>
         </ol>
       </div>
+    </div>
+    <div class="card" id="iphone" style="margin-top:16px">
+      <h3>📱 iPhone: install with Sideloadly (free)</h3>
+      <p>Apple only lets signed apps onto an iPhone. Until LinkMesh is on TestFlight, you sign the test build yourself with your free Apple ID. It takes about 5 minutes and needs a Mac or Windows PC and a USB cable.</p>
+      <div class="btns" style="margin:14px 0 6px">
+        <a class="btn primary" href="https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh-iOS.ipa">⬇ Download LinkMesh-iOS.ipa</a>
+        <a class="btn" href="https://sideloadly.io" rel="noopener">Get Sideloadly</a>
+      </div>
+      <p id="onIphone" style="display:none;margin-top:10px"><b>You're on an iPhone:</b> open this page on your computer instead. The .ipa is installed from a computer, not from Safari.</p>
+      <ol class="steps" style="margin-top:12px">
+        <li>On your computer, download <b>LinkMesh-iOS.ipa</b> (above) and install <b>Sideloadly</b>. On Windows, also install iTunes and iCloud from apple.com, not the Microsoft Store.</li>
+        <li>Connect the iPhone with a cable, unlock it and tap <b>Trust This Computer</b>.</li>
+        <li>Open Sideloadly, drag in <b>LinkMesh-iOS.ipa</b>, enter your Apple ID and press <b>Start</b>. A spare Apple ID works too: it's only used to sign the app.</li>
+        <li>On the iPhone, go to <b>Settings → Privacy &amp; Security → Developer Mode</b> and turn it on (it restarts once).</li>
+        <li>Then go to <b>Settings → General → VPN &amp; Device Management</b>, tap your Apple ID and choose <b>Trust</b>.</li>
+        <li>Open LinkMesh and allow <b>Bluetooth</b>, <b>Location</b> and <b>Notifications</b>.</li>
+      </ol>
+      <p style="margin-top:10px">Apps signed with a free Apple ID stop opening after <b>7 days</b>. Just repeat step 3 to refresh it. Messages and settings are kept. <a href="https://altstore.io" rel="noopener">AltStore</a> works too and can refresh automatically over Wi-Fi.</p>
+      <p style="margin-top:10px"><b>iPhone notes:</b> keep LinkMesh open (or recently used) for the best results. iOS pauses background apps, so an iPhone in the background stays reachable through links made while it was open, but isn't discovered by new Android phones. SOS alarms can't override silent mode on iPhone.</p>
     </div>
     <p class="sub" style="margin-top:20px">Once set up, phones keep receiving with the app closed while Bluetooth is on. Want to build it yourself? See the <a href="https://github.com/litu173/LinkMesh#setup">README</a>.</p>
   </div>
@@ -426,6 +446,11 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
   $('rangeVal').textContent = range + ' px'; $('hopsVal').textContent = maxHops;
   draw();
 })();
+</script>
+<script>
+  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+    document.getElementById('onIphone').style.display = 'block';
+  }
 </script>
 </body>
 </html>
