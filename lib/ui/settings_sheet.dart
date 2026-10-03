@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -88,34 +90,36 @@ class _SettingsSheetState extends ConsumerState<SettingsSheet>
             onSubmitted: (_) => _saveName(),
             onTapOutside: (_) => _saveName(),
           ),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Receive & relay when closed'),
-            subtitle: const Text(
-              'Keeps LinkMesh running in the background while Bluetooth is '
-              'on, with a small ongoing notification. Restarts after reboot.',
+          if (Platform.isAndroid) ...[
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Receive & relay when closed'),
+              subtitle: const Text(
+                'Keeps LinkMesh running in the background while Bluetooth is '
+                'on, with a small ongoing notification. Restarts after reboot.',
+              ),
+              value: _background ?? false,
+              onChanged: _background == null ? null : _setBackground,
             ),
-            value: _background ?? false,
-            onChanged: _background == null ? null : _setBackground,
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(
-              _batteryExempt ?? true
-                  ? Icons.battery_full
-                  : Icons.battery_alert,
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(
+                _batteryExempt ?? true
+                    ? Icons.battery_full
+                    : Icons.battery_alert,
+              ),
+              title: const Text('Battery optimisation'),
+              subtitle: Text(
+                _batteryExempt ?? true
+                    ? 'Unrestricted: Android won\'t stop background relay.'
+                    : 'Restricted: some phones stop background apps. '
+                          'Tap to allow LinkMesh to run.',
+              ),
+              onTap: _batteryExempt == false
+                  ? bridge.requestBatteryExemption
+                  : null,
             ),
-            title: const Text('Battery optimisation'),
-            subtitle: Text(
-              _batteryExempt ?? true
-                  ? 'Unrestricted: Android won\'t stop background relay.'
-                  : 'Restricted: some phones stop background apps. '
-                      'Tap to allow LinkMesh to run.',
-            ),
-            onTap: _batteryExempt == false
-                ? bridge.requestBatteryExemption
-                : null,
-          ),
+          ],
           const Divider(),
           Text('Sounds', style: text.titleSmall),
           const SizedBox(height: 8),

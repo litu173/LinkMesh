@@ -42,6 +42,20 @@ Bluetooth radio.
 > uses `License.nonprofit` (personal, nonprofit or educational use) in
 > `lib/ble/ble_transport.dart`. For-profit use needs its paid commercial license.
 
+### Mac as a test node
+
+A Mac can join the mesh as a full node (scan, connect, advertise, relay), which
+is handy for testing with a single phone. It needs Xcode and CocoaPods
+(`brew install cocoapods`):
+
+```bash
+flutter build macos --release
+open build/macos/Build/Products/Release/linkmesh.app
+```
+
+Allow Bluetooth when macOS asks. Notifications, sounds and background relay
+are Android-only.
+
 ## Architecture
 
 ```

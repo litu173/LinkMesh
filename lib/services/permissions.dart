@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:permission_handler/permission_handler.dart';
 
 class MeshPermissions {
@@ -21,9 +23,14 @@ const _bluetooth = [
   Permission.bluetoothAdvertise,
 ];
 
+// macOS (used as a desktop test node) prompts for Bluetooth itself on
+// first use and has no permission_handler implementation.
+const _desktop = MeshPermissions(bluetooth: true, location: true);
+
 /// Asks for everything LinkMesh uses. Notifications are requested too but
 /// don't gate the mesh.
 Future<MeshPermissions> requestMeshPermissions() async {
+  if (!Platform.isAndroid) return _desktop;
   final statuses = await [
     ..._bluetooth,
     Permission.locationWhenInUse,
@@ -40,6 +47,7 @@ Future<MeshPermissions> requestMeshPermissions() async {
 
 /// Current permission state, without prompting. Safe to call with no UI.
 Future<MeshPermissions> checkMeshPermissions() async {
+  if (!Platform.isAndroid) return _desktop;
   var bluetooth = true;
   for (final p in _bluetooth) {
     bluetooth = bluetooth && await p.status.isGranted;
