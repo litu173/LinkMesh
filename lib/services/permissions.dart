@@ -14,7 +14,8 @@ class MeshPermissions {
 
   /// Whether the mesh can run with no UI to ask for anything. On Android 11
   /// and below scanning also needs location.
-  bool canRunHeadless(int sdkInt) => bluetooth && (sdkInt >= 31 || location);
+  bool canRunHeadless(int sdkInt) =>
+      bluetooth && (!Platform.isAndroid || sdkInt >= 31 || location);
 }
 
 const _bluetooth = [
@@ -27,9 +28,19 @@ const _bluetooth = [
 // first use and has no permission_handler implementation.
 const _desktop = MeshPermissions(bluetooth: true, location: true);
 
+Future<MeshPermissions> _iosPermissions({required bool request}) async {
+  Future<bool> granted(Permission p) async =>
+      (request ? await p.request() : await p.status).isGranted;
+  final bluetooth = await granted(Permission.bluetooth);
+  final location = await granted(Permission.locationWhenInUse);
+  if (request) await Permission.notification.request();
+  return MeshPermissions(bluetooth: bluetooth, location: location);
+}
+
 /// Asks for everything LinkMesh uses. Notifications are requested too but
 /// don't gate the mesh.
 Future<MeshPermissions> requestMeshPermissions() async {
+  if (Platform.isIOS) return _iosPermissions(request: true);
   if (!Platform.isAndroid) return _desktop;
   final statuses = await [
     ..._bluetooth,
@@ -47,6 +58,7 @@ Future<MeshPermissions> requestMeshPermissions() async {
 
 /// Current permission state, without prompting. Safe to call with no UI.
 Future<MeshPermissions> checkMeshPermissions() async {
+  if (Platform.isIOS) return _iosPermissions(request: false);
   if (!Platform.isAndroid) return _desktop;
   var bluetooth = true;
   for (final p in _bluetooth) {

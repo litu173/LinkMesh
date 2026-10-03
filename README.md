@@ -42,6 +42,25 @@ Bluetooth radio.
 > uses `License.nonprofit` (personal, nonprofit or educational use) in
 > `lib/ble/ble_transport.dart`. For-profit use needs its paid commercial license.
 
+### iPhone
+
+The iOS app shares all mesh code with Android and talks to Android phones over
+the same BLE protocol. iOS-specific behaviour:
+
+- Notifications use the same chime and SOS sounds (copied to
+  `Library/Sounds` from the Flutter assets).
+- Background: the `bluetooth-central` and `bluetooth-peripheral` background
+  modes keep existing links delivering messages while the app is in the
+  background. iOS doesn't allow a permanent background service, so a phone
+  that's been suspended for a long time is discovered more slowly. Android
+  phones can't discover a *backgrounded* iPhone (iOS hides its advertisement),
+  but they keep messaging through a link made while it was open.
+- SOS can't break through silent mode without Apple's Critical Alerts
+  entitlement. It plays loud when the app is open.
+
+Installing on an iPhone requires Apple code signing. See
+[Installing on iPhone](#installing-on-iphone).
+
 ### Mac as a test node
 
 A Mac can join the mesh as a full node (scan, connect, advertise, relay), which
@@ -55,6 +74,21 @@ open build/macos/Build/Products/Release/linkmesh.app
 
 Allow Bluetooth when macOS asks. Notifications, sounds and background relay
 are Android-only.
+
+## Installing on iPhone
+
+| Option | Who can install | Needs |
+|---|---|---|
+| Xcode direct install | iPhones plugged into this Mac | Free Apple ID; the app expires after 7 days |
+| Sideloadly / AltStore with `LinkMesh-iOS-unsigned.ipa` | Any iPhone, signed with the tester's own Apple ID | Free Apple ID per tester; re-sign every 7 days |
+| TestFlight | Anyone with the link (up to 10,000) | Apple Developer Program ($99/yr) |
+
+Build the unsigned IPA:
+
+```bash
+flutter build ios --release --no-codesign
+mkdir -p Payload && cp -R build/ios/iphoneos/Runner.app Payload/ && zip -qry LinkMesh-iOS-unsigned.ipa Payload
+```
 
 ## Architecture
 

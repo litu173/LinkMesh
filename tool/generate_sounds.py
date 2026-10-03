@@ -16,8 +16,14 @@ import struct
 import wave
 
 SR = 48_000
-OUT = os.path.join(os.path.dirname(__file__), "..", "android", "app", "src",
-                   "main", "res", "raw")
+ROOT = os.path.join(os.path.dirname(__file__), "..")
+# Android notification channels read res/raw; iOS reads the Flutter asset;
+# the website plays the docs copy.
+OUTS = [
+    os.path.join(ROOT, "android", "app", "src", "main", "res", "raw"),
+    os.path.join(ROOT, "assets", "sounds"),
+    os.path.join(ROOT, "docs", "sounds"),
+]
 
 
 def silence(seconds):
@@ -120,13 +126,14 @@ def finish(samples, fade_out=0.08, peak_db=-1.0):
 
 
 def write(name, pcm):
-    os.makedirs(OUT, exist_ok=True)
-    path = os.path.join(OUT, name)
-    with wave.open(path, "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(SR)
-        w.writeframes(struct.pack(f"<{len(pcm)}h", *pcm))
+    for out in OUTS:
+        os.makedirs(out, exist_ok=True)
+        path = os.path.join(out, name)
+        with wave.open(path, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(SR)
+            w.writeframes(struct.pack(f"<{len(pcm)}h", *pcm))
     rms = math.sqrt(sum(p * p for p in pcm) / len(pcm)) / 32768
     print(f"{path}: {len(pcm) / SR:.2f}s, rms {20 * math.log10(rms):.1f} dBFS")
 
