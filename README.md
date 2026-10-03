@@ -7,6 +7,9 @@ every node in range.
 
 Status: **MVP (spec steps 1–5)**, Android first.
 
+**[Live preview & mesh simulator](https://litu173.github.io/LinkMesh/)** ·
+**[Download the APK](https://github.com/litu173/LinkMesh/releases/latest/download/LinkMesh.apk)**
+
 ## Setup
 
 The repo holds `lib/`, `test/` and the Android manifest. Generate the rest of
