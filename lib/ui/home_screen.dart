@@ -11,8 +11,10 @@ import '../models/peer.dart';
 import '../models/stored_message.dart';
 import '../services/permissions.dart';
 import '../state/providers.dart';
+import 'chat_screen.dart';
 import 'chats_tab.dart';
 import 'nearby_tab.dart';
+import 'settings_sheet.dart';
 import 'sos_tab.dart';
 import 'widgets/signal_bars.dart';
 
@@ -27,27 +29,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late final _tabs = TabController(length: 3, vsync: this);
   StreamSubscription<StoredMessage>? _sosSub;
+  late final AppLifecycleListener _lifecycle;
   MeshPermissions? _permissions;
 
   @override
   void initState() {
     super.initState();
     _sosSub = ref.read(routerProvider).sosAlerts.listen(_showSosAlert);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startMesh());
+    _lifecycle = AppLifecycleListener(onResume: _openPendingChat);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startMesh();
+      _openPendingChat();
+    });
   }
 
   @override
   void dispose() {
     _sosSub?.cancel();
+    _lifecycle.dispose();
     _tabs.dispose();
     super.dispose();
   }
 
   Future<void> _startMesh() async {
-    final permissions = await requestMeshPermissions();
+    final permissions =
+        await ref.read(meshControllerProvider).requestAndStart();
     if (!mounted) return;
     setState(() => _permissions = permissions);
-    if (permissions.bluetooth) await ref.read(transportProvider).start();
+  }
+
+  /// Opens the conversation (or SOS tab) for a tapped notification.
+  Future<void> _openPendingChat() async {
+    final peerId = await ref.read(bridgeProvider).takePendingChat();
+    if (peerId == null || !mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    if (peerId == 'sos') {
+      _tabs.animateTo(2);
+      return;
+    }
+    await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ChatScreen(peerId: peerId),
+    ));
   }
 
   void _showSosAlert(StoredMessage alert) {
@@ -67,34 +89,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     ));
   }
 
-  Future<void> _rename() async {
-    final identity = ref.read(identityServiceProvider);
-    final controller = TextEditingController(text: identity.current.name);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Your name on the mesh'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 24,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    // Not disposed here: the dialog's exit animation still reads it.
-    if (name != null) await identity.rename(name);
-  }
+  void _openSettings() => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (_) => const SettingsSheet(),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +123,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           IconButton(
             tooltip: identity == null ? 'Profile' : 'You: ${identity.name}',
             icon: const Icon(Icons.account_circle_outlined),
-            onPressed: _rename,
+            onPressed: _openSettings,
           ),
         ],
         bottom: TabBar(

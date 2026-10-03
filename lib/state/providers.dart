@@ -6,7 +6,10 @@ import '../mesh/transport.dart';
 import '../models/node_identity.dart';
 import '../models/peer.dart';
 import '../models/stored_message.dart';
+import '../services/alert_service.dart';
 import '../services/identity_service.dart';
+import '../services/mesh_bridge.dart';
+import '../services/mesh_controller.dart';
 import '../services/sos_service.dart';
 
 // Services are created in main() and injected via overrides.
@@ -18,6 +21,11 @@ final identityServiceProvider =
     Provider<IdentityService>((_) => throw UnimplementedError());
 final sosServiceProvider =
     Provider<SosService>((_) => throw UnimplementedError());
+final bridgeProvider = Provider<MeshBridge>((_) => throw UnimplementedError());
+final alertServiceProvider =
+    Provider<AlertService>((_) => throw UnimplementedError());
+final meshControllerProvider =
+    Provider<MeshController>((_) => throw UnimplementedError());
 
 /// Emits the current value first, then every change.
 Stream<T> _seeded<T>(T current, Stream<T> changes) async* {

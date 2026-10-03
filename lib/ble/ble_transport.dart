@@ -50,6 +50,7 @@ class BleTransport implements MeshTransport {
   Timer? _maintenanceTimer;
   bool _peripheralConfigured = false;
   bool _online = false;
+  bool _background = false;
 
   @override
   TransportStatus get status => _status;
@@ -128,10 +129,9 @@ class BleTransport implements MeshTransport {
       debugPrint('LinkMesh: peripheral role unavailable: $e');
     }
     _scanSub = FlutterBluePlus.onScanResults.listen(_onScanResults);
-    _scanTimer = Timer.periodic(BleConstants.scanPeriod, (_) => _scanOnce());
+    _scheduleScanning();
     _maintenanceTimer =
         Timer.periodic(const Duration(seconds: 5), (_) => _maintain());
-    unawaited(_scanOnce());
     _setStatus(TransportStatus.running);
   }
 
@@ -227,18 +227,62 @@ class BleTransport implements MeshTransport {
   // ---------------------------------------------------------------------------
   // Central role
 
+  @override
+  void setBackground(bool background) {
+    if (background == _background) return;
+    _background = background;
+    if (_online) _scheduleScanning();
+  }
+
+  /// Foreground: short low-latency scans on a duty cycle, for quick
+  /// discovery. Background: one continuous low-power scan, which the radio
+  /// duty-cycles in hardware and which keeps working when the CPU sleeps.
+  /// Receiving doesn't depend on scanning at all: peers write into our GATT
+  /// server, which stays up as long as the process lives.
+  void _scheduleScanning() {
+    _scanTimer?.cancel();
+    if (_background) {
+      // Android may demote scans running over 30 min; restart periodically.
+      _scanTimer = Timer.periodic(
+        const Duration(minutes: 25),
+        (_) => _restartScan(),
+      );
+    } else {
+      _scanTimer = Timer.periodic(BleConstants.scanPeriod, (_) => _scanOnce());
+    }
+    unawaited(_restartScan());
+  }
+
+  Future<void> _restartScan() async {
+    try {
+      if (FlutterBluePlus.isScanningNow) await FlutterBluePlus.stopScan();
+    } catch (_) {}
+    await _scanOnce();
+  }
+
   Future<void> _scanOnce() async {
     if (!_online || FlutterBluePlus.isScanningNow) return;
     try {
-      await FlutterBluePlus.startScan(
-        withServices: [_service],
-        timeout: BleConstants.scanWindow,
-        androidScanMode: AndroidScanMode.lowLatency,
-      );
+      if (_background) {
+        await FlutterBluePlus.startScan(
+          withServices: [_service],
+          androidScanMode: AndroidScanMode.lowPower,
+          // Keep reporting devices we've already seen, so peers that drop
+          // and come back get reconnected.
+          continuousUpdates: true,
+        );
+      } else {
+        await FlutterBluePlus.startScan(
+          withServices: [_service],
+          timeout: BleConstants.scanWindow,
+          androidScanMode: AndroidScanMode.lowLatency,
+        );
+      }
     } catch (e) {
       debugPrint('LinkMesh: scan failed: $e');
     }
   }
+
 
   void _onScanResults(List<ScanResult> results) {
     final now = DateTime.now();

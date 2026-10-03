@@ -48,9 +48,13 @@ class MeshRouter {
   final _buffer = <String, _Buffered>{};
   final _subscriptions = <StreamSubscription<Object?>>[];
   final _sosAlerts = StreamController<StoredMessage>.broadcast();
+  final _incoming = StreamController<StoredMessage>.broadcast();
 
   /// Fires for each new SOS received from another node.
   Stream<StoredMessage> get sosAlerts => _sosAlerts.stream;
+
+  /// Fires for each new chat message addressed to this node.
+  Stream<StoredMessage> get incomingMessages => _incoming.stream;
 
   void start() {
     _subscriptions
@@ -64,6 +68,7 @@ class MeshRouter {
     }
     _subscriptions.clear();
     await _sosAlerts.close();
+    await _incoming.close();
   }
 
   Future<StoredMessage> sendText(String peerId, String text) =>
@@ -126,11 +131,13 @@ class MeshRouter {
     switch (message.type) {
       case MessageType.text:
         if (forMe) {
-          await store.save(StoredMessage(
+          final stored = StoredMessage(
             message: message,
             outgoing: false,
             relayHops: message.hopCount,
-          ));
+          );
+          await store.save(stored);
+          _incoming.add(stored);
           await _sendAck(message);
         } else {
           await _relay(message);

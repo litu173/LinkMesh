@@ -181,6 +181,31 @@ void main() {
         reason: 'own SOS is not an alert');
   });
 
+  test('incoming message event fires once per message, for recipient only',
+      () async {
+    final net = FakeNetwork();
+    for (final id in ['A', 'B', 'C']) {
+      net.addNode(id);
+    }
+    // Triangle: C hears the message both directly and via B.
+    net
+      ..link('A', 'B')
+      ..link('B', 'C')
+      ..link('A', 'C');
+    final atC = <String>[];
+    final atB = <String>[];
+    net.nodes['C']!.router.incomingMessages
+        .listen((m) => atC.add(m.message.content));
+    net.nodes['B']!.router.incomingMessages
+        .listen((m) => atB.add(m.message.content));
+
+    await net.nodes['A']!.router.sendText('C', 'ding');
+    await settle();
+
+    expect(atC, ['ding'], reason: 'one chime, not one per copy');
+    expect(atB, isEmpty, reason: 'relays do not notify');
+  });
+
   test('malformed frames are ignored', () async {
     final net = FakeNetwork();
     final a = net.addNode('A');

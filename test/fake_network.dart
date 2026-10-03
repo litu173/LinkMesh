@@ -112,6 +112,9 @@ class FakeTransport implements MeshTransport {
   Future<void> stop() async {}
 
   @override
+  void setBackground(bool background) {}
+
+  @override
   Future<int> broadcast(Uint8List frame) async {
     final targets = network.neighbours(id).toList();
     for (final t in targets) {

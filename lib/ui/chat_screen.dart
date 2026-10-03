@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/peer.dart';
+import '../services/alert_service.dart';
 import '../state/providers.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/signal_bars.dart';
@@ -18,9 +19,19 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _input = TextEditingController();
+  late final AlertService _alerts;
+
+  @override
+  void initState() {
+    super.initState();
+    // While this chat is open, new messages from this peer just chime.
+    _alerts = ref.read(alertServiceProvider)..openChatPeer = widget.peerId;
+    ref.read(bridgeProvider).cancelMessageNotification(widget.peerId);
+  }
 
   @override
   void dispose() {
+    if (_alerts.openChatPeer == widget.peerId) _alerts.openChatPeer = null;
     _input.dispose();
     super.dispose();
   }

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sounds are referenced by URI from notification channels; keep them from resource shrinking. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/message_chime,@raw/sos_alert,@drawable/ic_stat_linkmesh" />

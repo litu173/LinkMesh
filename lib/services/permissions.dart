@@ -9,22 +9,43 @@ class MeshPermissions {
   /// Needed for BLE scanning on Android 11 and below, and for SOS
   /// coordinates everywhere. The mesh still starts without it.
   final bool location;
+
+  /// Whether the mesh can run with no UI to ask for anything. On Android 11
+  /// and below scanning also needs location.
+  bool canRunHeadless(int sdkInt) => bluetooth && (sdkInt >= 31 || location);
 }
 
+const _bluetooth = [
+  Permission.bluetoothScan,
+  Permission.bluetoothConnect,
+  Permission.bluetoothAdvertise,
+];
+
+/// Asks for everything LinkMesh uses. Notifications are requested too but
+/// don't gate the mesh.
 Future<MeshPermissions> requestMeshPermissions() async {
   final statuses = await [
-    Permission.bluetoothScan,
-    Permission.bluetoothConnect,
-    Permission.bluetoothAdvertise,
+    ..._bluetooth,
     Permission.locationWhenInUse,
+    Permission.notification,
   ].request();
 
   // On Android 11 and below the Bluetooth permissions report granted.
   bool ok(Permission p) => statuses[p]?.isGranted ?? false;
   return MeshPermissions(
-    bluetooth: ok(Permission.bluetoothScan) &&
-        ok(Permission.bluetoothConnect) &&
-        ok(Permission.bluetoothAdvertise),
+    bluetooth: _bluetooth.every(ok),
     location: ok(Permission.locationWhenInUse),
+  );
+}
+
+/// Current permission state, without prompting. Safe to call with no UI.
+Future<MeshPermissions> checkMeshPermissions() async {
+  var bluetooth = true;
+  for (final p in _bluetooth) {
+    bluetooth = bluetooth && await p.status.isGranted;
+  }
+  return MeshPermissions(
+    bluetooth: bluetooth,
+    location: await Permission.locationWhenInUse.status.isGranted,
   );
 }

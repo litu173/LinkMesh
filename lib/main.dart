@@ -5,11 +5,17 @@ import 'app.dart';
 import 'ble/ble_transport.dart';
 import 'data/sqlite_message_store.dart';
 import 'mesh/mesh_router.dart';
+import 'services/alert_service.dart';
 import 'services/identity_service.dart';
 import 'services/location_service.dart';
+import 'services/mesh_bridge.dart';
+import 'services/mesh_controller.dart';
 import 'services/sos_service.dart';
 import 'state/providers.dart';
 
+/// Runs both when the user opens the app and when Android starts the
+/// background service with no UI (e.g. after a reboot). The mesh is started
+/// here rather than from a widget so it works in both cases.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -22,6 +28,13 @@ Future<void> main() async {
     identity: identity.current,
   )..start();
   identity.changes.listen((id) => router.identity = id);
+  final bridge = MeshBridge();
+  final alerts = AlertService(router: router, bridge: bridge);
+  final controller = MeshController(
+    transport: transport,
+    bridge: bridge,
+    alerts: alerts,
+  );
   final sos = SosService(router: router, location: LocationService());
 
   runApp(
@@ -32,8 +45,13 @@ Future<void> main() async {
         routerProvider.overrideWithValue(router),
         identityServiceProvider.overrideWithValue(identity),
         sosServiceProvider.overrideWithValue(sos),
+        bridgeProvider.overrideWithValue(bridge),
+        alertServiceProvider.overrideWithValue(alerts),
+        meshControllerProvider.overrideWithValue(controller),
       ],
       child: const LinkMeshApp(),
     ),
   );
+
+  await controller.startIfPermitted();
 }

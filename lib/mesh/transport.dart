@@ -25,6 +25,9 @@ abstract class MeshTransport {
   Future<void> start();
   Future<void> stop();
 
+  /// Switches to a low-power mode while the app isn't on screen.
+  void setBackground(bool background);
+
   /// Sends [frame] to every linked neighbour. Returns how many accepted it.
   Future<int> broadcast(Uint8List frame);
 

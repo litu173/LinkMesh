@@ -113,12 +113,12 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
 <div class="wrap">
   <header class="top">
     <a class="logo" href="#"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 24L16 8L24 24Z" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><circle cx="8" cy="24" r="4" fill="var(--brand)"/><circle cx="24" cy="24" r="4" fill="var(--brand)"/><circle cx="16" cy="8" r="4" fill="var(--brand)"/></svg>LinkMesh</a>
-    <nav><a href="#simulator">Simulator</a><a href="#how">How it works</a><a href="#install">Install</a><a href="https://github.com/litu173/LinkMesh">GitHub</a></nav>
+    <nav><a href="#simulator">Simulator</a><a href="#sounds">Sounds</a><a href="#how">How it works</a><a href="#install">Install</a><a href="https://github.com/litu173/LinkMesh">GitHub</a></nav>
   </header>
 
   <div class="hero">
     <div>
-      <span class="pill">MVP · Android · Open source</span>
+      <span class="pill">v0.2 · Android · Open source</span>
       <h1>Messages that hop phone to phone. No internet needed.</h1>
       <p class="lead">LinkMesh connects nearby Android phones over Bluetooth Low Energy and relays messages through each other, for blackouts, festivals, hikes and emergencies.</p>
       <div class="btns">
@@ -151,7 +151,9 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
       <div class="card"><div class="ic">✓✓</div><h3>Delivery receipts</h3><p>Shows ✓ sent, ⇄ relayed and ✓✓ delivered, plus "via N devices" for each message.</p></div>
       <div class="card"><div class="ic">📦</div><h3>Store &amp; forward</h3><p>If a chain breaks, messages wait and continue when a path comes back.</p></div>
       <div class="card"><div class="ic">🆘</div><h3>SOS broadcast</h3><p>One tap repeats an alert with GPS coordinates to every phone in the mesh.</p></div>
-      <div class="card"><div class="ic">🔋</div><h3>Battery-aware</h3><p>Scans in short bursts, limits connections to 5, and keeps no internet connection open.</p></div>
+      <div class="card"><div class="ic">🌙</div><h3>Works when closed</h3><p>With Bluetooth on, phones keep receiving and relaying in the background, even after a reboot.</p></div>
+      <div class="card"><div class="ic">🔔</div><h3>Distinct sounds</h3><p>A soft glass chime for messages, and an SOS alarm that sounds even on silent.</p></div>
+      <div class="card"><div class="ic">🔋</div><h3>Battery-aware</h3><p>Uses a low-power hardware scan in the background and limits connections to 5.</p></div>
     </div>
   </div>
 </section>
@@ -182,6 +184,25 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
           <span><span style="color:#e5a50a">●</span> delivery receipt (ack)</span>
           <span>Number under a phone = hop count it received</span>
         </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sounds">
+  <div class="wrap">
+    <h2>Sounds</h2>
+    <p class="sub">Two custom sounds, synthesized for LinkMesh at 48 kHz / 16-bit.</p>
+    <div class="cols">
+      <div class="card">
+        <h3>💬 Message chime</h3>
+        <p>A two-note glass chime rising a fifth (D6 → A6): short, warm and easy to recognize in a pocket.</p>
+        <audio controls preload="none" src="sounds/message_chime.wav" style="width:100%;margin-top:12px"></audio>
+      </div>
+      <div class="card">
+        <h3>🆘 SOS alert</h3>
+        <p>"··· ––– ···" in Morse with bright two-tone beeps. It plays on the alarm channel, so it is heard even on silent.</p>
+        <audio controls preload="none" src="sounds/sos_alert.wav" style="width:100%;margin-top:12px"></audio>
       </div>
     </div>
   </div>
@@ -250,7 +271,7 @@ footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top:
         </ol>
       </div>
     </div>
-    <p class="sub" style="margin-top:20px">Keep the app open on screen: background mode arrives in Phase 2. Want to build it yourself? See the <a href="https://github.com/litu173/LinkMesh#setup">README</a>.</p>
+    <p class="sub" style="margin-top:20px">Once set up, phones keep receiving with the app closed while Bluetooth is on. Want to build it yourself? See the <a href="https://github.com/litu173/LinkMesh#setup">README</a>.</p>
   </div>
 </section>
 
